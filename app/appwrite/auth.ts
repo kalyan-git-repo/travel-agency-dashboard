@@ -5,12 +5,28 @@ import {redirect} from "react-router";
 
 export const getExistingUser = async (id: string) => {
     try {
-        const fetchedUser = await tablesDB.getRow({
+        const { rows, total } = await tablesDB.listRows({
             databaseId: appwriteConfig.databaseId,
             tableId: appwriteConfig.userTableId,
-            rowId: id,
+            queries: [
+                Query.equal('accountId', id),
+            ],
         })
-        return fetchedUser ? fetchedUser : null;
+        return total > 0 ? rows[0] : null
+    } catch (error) {
+        console.error("Error fetching user:", error);
+        return null;
+    }
+};
+
+export const getUserFromRowId = async (id: string) => {
+    try {
+        const fetched_user = await tablesDB.getRow({
+            databaseId: appwriteConfig.databaseId,
+            tableId: appwriteConfig.userTableId,
+            rowId: id
+        })
+        return fetched_user ? fetched_user : storeUserData()
     } catch (error) {
         console.error("Error fetching user:", error);
         return null;
@@ -43,10 +59,10 @@ export const storeUserData = async () => {
             tableId: appwriteConfig.userTableId,
             rowId: ID.unique(), // Use ID.unique() to generate a unique ID
             data: rowData,
-            permissions: ['read("any")', 'write("users")'] // Optional: Row-level permissions
         });
 
         if (!createdUser.$id) redirect("/sign-in");
+        return createdUser
     } catch (error) {
         console.error("Error storing user data:", error);
     }
@@ -73,7 +89,8 @@ const getGooglePicture = async (accessToken: string) => {
 export const loginWithGoogle = async () => {
     try{
         account.createOAuth2Session({
-            provider: OAuthProvider.Google
+            provider: OAuthProvider.Google,
+            success: 'https://localhost:5173'
         })
 
     } catch (e) {
@@ -104,10 +121,9 @@ export const getUser = async () => {
             tableId: appwriteConfig.userTableId,
             queries: [
                 Query.equal('accountId', user.$id),
-                Query.select(['name', 'email', 'imageUrl', 'joinedAt', 'accountId'])
             ],
         })
-
+        console.log("row is", rows)
         return rows.length > 0 ? rows[0] : await storeUserData();
     } catch (e) {
         console.log(e)

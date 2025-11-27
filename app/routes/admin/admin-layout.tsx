@@ -1,6 +1,24 @@
-import {Outlet} from 'react-router'
+import {Outlet, redirect} from 'react-router'
 import {MobileSidebar, NavItems} from "../../../components";
 import {SidebarComponent} from "@syncfusion/ej2-react-navigations";
+import {getUser} from "~/appwrite/auth";
+
+export async function clientLoader() {
+    try{
+        const authUser = await getUser()
+
+        //if (existingUser?.$id) {
+        //    const userFromRowId = await getUserFromRowId(existingUser.$id)
+        //    console.log(userFromRowId)
+        //}
+        console.log(authUser)
+        if (authUser?.status === 'user') return redirect('/')
+        return authUser
+    } catch (e) {
+        console.log('Error in clientLoader', e)
+        return redirect('/sign-in')
+    }
+}
 
 const AdminLayout = () => {
     return (

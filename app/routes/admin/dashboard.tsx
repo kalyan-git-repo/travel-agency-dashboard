@@ -1,12 +1,22 @@
 import React from 'react'
 import {Header, StatsCard, TripCard} from "../../../components";
 import {dashboardStats, user, allTrips} from  "~/constants"
+import {getUser, getExistingUser} from "~/appwrite/auth";
+import type {Route} from "../../../.react-router/types/app/+types/root";
+import {account} from "~/appwrite/client";
+import {redirect} from "react-router";
 
 const {totalUsers, usersJoined, totalTrips, tripsCreated, userRole} = dashboardStats;
 
-const Dashboard = () => {
 
+export const clientLoader = async () => {
+    const user = await account.get()
+    await getExistingUser(user.$id)
+}
 
+const Dashboard = ({loaderData} : Route.ComponentProps) => {
+
+    const user = loaderData as unknown as User | null
     return (
         <main className="dashboard wrapper">
             <Header
