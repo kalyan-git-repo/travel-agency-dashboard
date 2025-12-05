@@ -3,6 +3,10 @@ import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
 import {sentryReactRouter, type SentryReactRouterBuildOptions} from "@sentry/react-router";
+import path from "node:path";
+import * as fs from "node:fs";
+
+const __dirname = path.resolve();
 
 
 const sentryConfig: SentryReactRouterBuildOptions = {
@@ -22,6 +26,12 @@ export default defineConfig(config => {
         sentryConfig,
         ssr: {
             noExternal: [/@syncfusion/]
+        },
+        server: {
+            https: {
+                key: fs.readFileSync(path.resolve(__dirname, '.cert/localhost+2-key.pem')),
+                cert: fs.readFileSync(path.resolve(__dirname, '.cert/localhost+2.pem')),
+            },
         }
     };
 });
